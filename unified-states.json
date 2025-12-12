@@ -1,0 +1,83 @@
+{
+    "changes_detected": true,
+    "heat_needed": true,
+    "rooms": {
+        "balcony": {
+            "current_temp": 19.3,
+            "day_temp": 22,
+            "delta_temp": 0.2,
+            "evening_temp": 17,
+            "heater_needed": false,
+            "morning_temp": 22,
+            "night_temp": 15,
+            "radiator_override": true,
+            "targetTemp": null,
+            "trv_temp": null,
+            "window_opened": false
+        },
+        "bbls": {
+            "current_temp": 21.8,
+            "day_start": 7,
+            "day_temp": 22,
+            "delta_temp": 0.2,
+            "evening_start": 18,
+            "evening_temp": 21.5,
+            "heater_needed": true,
+            "morning_start": 6,
+            "morning_temp": 22,
+            "night_start": 21,
+            "night_temp": 21.5,
+            "targetTemp": 22,
+            "trv_temp": 35,
+            "window_opened": false,
+            "would_start_soon": true
+        },
+        "bedroom": {
+            "current_temp": 22.5,
+            "day_start": 7,
+            "day_temp": 22,
+            "delta_temp": 0.2,
+            "evening_start": 19,
+            "evening_temp": 22,
+            "heater_needed": false,
+            "morning_start": 6,
+            "morning_temp": 22,
+            "night_start": 21,
+            "night_temp": 21,
+            "targetTemp": 22,
+            "trv_temp": 5,
+            "window_opened": false,
+            "would_start_soon": false
+        },
+        "kitchen": {
+            "day_temp": 22,
+            "evening_temp": 20,
+            "heater_needed": true,
+            "morning_temp": 21,
+            "night_temp": 18,
+            "targetTemp": null,
+            "trv_temp": 35,
+            "window_opened": false
+        },
+        "living": {
+            "current_temp": 22.1,
+            "day_start": 8,
+            "day_temp": 21.5,
+            "delta_temp": 0.4,
+            "evening_start": 17,
+            "evening_temp": 21.5,
+            "heater_needed": false,
+            "morning_start": 5,
+            "morning_temp": 21.5,
+            "night_start": 21,
+            "night_temp": 20,
+            "targetTemp": 21.5,
+            "trv_temp": 5,
+            "window_opened": false,
+            "would_start_soon": false
+        }
+    },
+    "summer_mode": false,
+    "we_are_away": false,
+    "we_are_away_temp": 20
+}
