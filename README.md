@@ -12,6 +12,9 @@ Related hardware (some links refer to Romanian website as I am located in Romani
 
 <br/>
 <img width="1774" height="1103" alt="image" src="https://github.com/user-attachments/assets/ad7f94ab-3e34-4d81-9064-c3fc81709d13" />
+<br />
+<img width="1628" height="1147" alt="image" src="https://github.com/user-attachments/assets/c276a57f-b0b4-4337-a8d1-ae51f45985fa" />
+
 
 ## How it works
 
