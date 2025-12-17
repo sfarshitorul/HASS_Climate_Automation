@@ -1,0 +1,13 @@
+summer_mode:
+  name: Summer Mode
+we_are_away:
+  name: We Are Away
+  
+living_heater_needed:
+  name: Living Heater Needed
+bedroom_heater_needed:
+  name: Bedroom Heater Needed
+bbls_heater_needed:
+  name: Bbls Heater Needed
+balcony_heater_needed:
+  name: Balcony Heater Needed
