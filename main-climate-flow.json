@@ -1,78 +1,79 @@
 [
     {
-        "disabled": false,
-        "env": [
-        ],
         "id": "6e4b058d9d8e0a83",
-        "info": "",
+        "type": "tab",
         "label": "Main Climate Flow",
-        "type": "tab"
+        "disabled": false,
+        "info": "",
+        "env": []
     },
     {
-        "crontab": "",
         "id": "0280047982c0a52b",
+        "type": "inject",
+        "z": "6e4b058d9d8e0a83",
         "name": "Init + every 60s",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
         "once": true,
         "onceDelay": "1",
-        "props": [
-        ],
-        "repeat": "",
         "topic": "",
-        "type": "inject",
+        "x": 140,
+        "y": 400,
         "wires": [
             [
                 "21547463e3d44df3"
             ]
-        ],
-        "x": 140,
-        "y": 400,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "active": true,
-        "complete": "payload",
-        "console": false,
         "id": "929a46e030f17a28",
-        "name": "unified snapshot",
-        "statusType": "auto",
-        "statusVal": "",
-        "targetType": "msg",
-        "tosidebar": true,
-        "tostatus": false,
         "type": "debug",
-        "wires": [
-        ],
+        "z": "6e4b058d9d8e0a83",
+        "name": "unified snapshot",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
         "x": 720,
         "y": 680,
-        "z": "6e4b058d9d8e0a83"
+        "wires": []
     },
     {
-        "finalize": "",
-        "func": "// Get HA state cache from global context\nlet states = [];\nlet unified = null;\n\n//If you need to add a new entity it needs to be added \n//inside both process... functions\n\n\n// Helper: safely get numeric state\nfunction num(entity_id) {\n    const s = states[entity_id];\n    if (!s) {\n        node.warn(`Missing entity: ${entity_id}`);\n        return null;\n    }\n    const n = parseFloat(s.state);\n    return isNaN(n) ? null : n;\n}\n\n// Helper: safely get boolean state (on/off)\nfunction bool(entity_id) {\n    const s = states[entity_id];\n    if (!s) {\n        node.warn(`Missing entity: ${entity_id}`);\n        return null;\n    }\n    const v = s.state;\n    return v === 'on' || v === true;\n}\n\n// ----- Build unified object -----\nfunction processCurrentStates() {\n    const ha = global.get('homeassistant');\n    if (!ha || !ha.homeAssistant || !ha.homeAssistant.states) {\n        node.warn(\"Home Assistant state cache not ready in global context\");\n        return null;\n    }\n\n    states = ha.homeAssistant.states;\n\n    unified = {\n        summer_mode: bool('input_boolean.summer_mode'),\n        we_are_away: bool('input_boolean.we_are_away'),\n        we_are_away_temp: num('input_number.away_temp'),\n        heat_needed: null,\n        changes_detected: false,\n\n\n        rooms: {\n            living: {\n                current_temp:  num('sensor.living_temp_temperature'),\n                window_opened: bool('binary_sensor.living_window_contact'),\n\n                morning_temp:  num('input_number.living_morning_temp'),\n                day_temp:      num('input_number.living_day_temp'),\n                evening_temp:  num('input_number.living_evening_temp'),\n                night_temp:    num('input_number.living_night_temp'),\n                delta_temp:    num('input_number.living_delta_temp'),\n\n                morning_start: num('input_number.living_morning_start'),\n                day_start:     num('input_number.living_day_start'),\n                evening_start: num('input_number.living_evening_start'),\n                night_start:   num('input_number.living_night_start'),\n                \n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            bedroom: {\n                current_temp:  num('sensor.bedroom_temp_temperature'),\n                window_opened: bool('binary_sensor.balcony_window_contact'),\n\n                morning_temp:  num('input_number.bedroom_morning_temp'),\n                day_temp:      num('input_number.bedroom_day_temp'),\n                evening_temp:  num('input_number.bedroom_evening_temp'),\n                night_temp:    num('input_number.bedroom_night_temp'),\n                delta_temp:    num('input_number.bedroom_delta_temp'),\n\n                morning_start: num('input_number.bedroom_morning_start'),\n                day_start:     num('input_number.bedroom_day_start'),\n                evening_start: num('input_number.bedroom_evening_start'),\n                night_start:   num('input_number.bedroom_night_start'),\n                \n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            bbls: {\n                current_temp:  num('sensor.bbls_temp_temperature'),\n                window_opened: bool('binary_sensor.bbls_window_contact'),\n\n                morning_temp:  num('input_number.bbls_morning_temp'),\n                day_temp:      num('input_number.bbls_day_temp'),\n                evening_temp:  num('input_number.bbls_evening_temp'),\n                night_temp:    num('input_number.bbls_night_temp'),\n                delta_temp:    num('input_number.bbls_delta_temp'),\n\n                morning_start: num('input_number.bbls_morning_start'),\n                day_start:     num('input_number.bbls_day_start'),\n                evening_start: num('input_number.bbls_evening_start'),\n                night_start:   num('input_number.bbls_night_start'),\n\n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            balcony: {\n                current_temp:  num('sensor.balcony_temp_temperature'),\n                window_opened: bool('binary_sensor.balcony_window_contact'),\n                radiator_override: bool('input_boolean.radiator_manual_override'),\n\n                morning_temp:  num('input_number.balcony_morning_temp'),\n                day_temp:      num('input_number.balcony_day_temp'),\n                evening_temp:  num('input_number.balcony_evening_temp'),\n                night_temp:    num('input_number.balcony_night_temp'),\n                delta_temp:    num('input_number.balcony_delta_temp'),\n\n                targetTemp: null,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            kitchen: {\n                window_opened: bool('binary_sensor.kitchen_window_contact'),\n\n                morning_temp:  num('input_number.kitchen_morning_temp'),\n                day_temp:      num('input_number.kitchen_day_temp'),\n                evening_temp:  num('input_number.kitchen_evening_temp'),\n                night_temp:    num('input_number.kitchen_night_temp'),\n\n                targetTemp: null,\n                trv_temp: null,\n                heater_needed: false\n            }\n        }\n    };\n\n    // Store in flow context so other flows can reuse it\n    flow.set('unified_entities', unified); \n    return unified;\n}\n\n// ----- If event triggered by watched entity - build unified object -------\nfunction processCurrentEvent() {\n    const watchedEvents = new Set([\n        \"input_boolean.summer_mode\",\n        \"input_boolean.we_are_away\",\n        \"input_number.away_temp\",\n\n        \"sensor.living_temp_temperature\",\n        \"binary_sensor.living_window_contact\",\n        \"input_number.living_morning_temp\",\n        \"input_number.living_day_temp\",\n        \"input_number.living_evening_temp\",\n        \"input_number.living_night_temp\",\n        \"input_number.living_delta_temp\",\n        \"input_number.living_morning_start\",\n        \"input_number.living_day_start\",\n        \"input_number.living_evening_start\",\n        \"input_number.living_night_start\",\n\n\n        \"sensor.bedroom_temp_temperature\",\n        \"binary_sensor.balcony_window_contact\",\n        \"input_number.bedroom_morning_temp\",\n        \"input_number.bedroom_day_temp\",\n        \"input_number.bedroom_evening_temp\",\n        \"input_number.bedroom_night_temp\",\n        \"input_number.bedroom_delta_temp\",\n        \"input_number.bedroom_morning_start\",\n        \"input_number.bedroom_day_start\",\n        \"input_number.bedroom_evening_start\",\n        \"input_number.bedroom_night_start\",\n\n\n        \"sensor.bbls_temp_temperature\",\n        \"binary_sensor.bbls_window_contact\",\n        \"input_number.bbls_morning_temp\",\n        \"input_number.bbls_day_temp\",\n        \"input_number.bbls_evening_temp\",\n        \"input_number.bbls_night_temp\",\n        \"input_number.bbls_delta_temp\",\n        \"input_number.bbls_morning_start\",\n        \"input_number.bbls_day_start\",\n        \"input_number.bbls_evening_start\",\n        \"input_number.bbls_night_start\",\n\n\n        \"sensor.balcony_temp_temperature\",\n        \"binary_sensor.balcony_window_contact\",\n        \"input_number.balcony_morning_temp\",\n        \"input_number.balcony_day_temp\",\n        \"input_number.balcony_evening_temp\",\n        \"input_number.balcony_night_temp\",\n        \"input_number.balcony_delta_temp\",\n        \"input_boolean.radiator_manual_override\",\n\n\n        \"input_number.kitchen_morning_temp\",\n        \"input_number.kitchen_day_temp\",\n        \"input_number.kitchen_evening_temp\",\n        \"input_number.kitchen_night_temp\",\n        \"binary_sensor.kitchen_window_contact\"\n    ]);\n\n    // events: all puts the event in msg.payload\n    const ev = msg.payload;  \n    if (!ev || ev.event_type !== \"state_changed\") {\n        return null;\n    }\n\n    const data = ev.event || {};\n    const entity_id = data.entity_id;\n\n    if (!entity_id || !watchedEvents.has(entity_id)) {\n        return null; // not an entity we care about\n    }\n    \n    unified = processCurrentStates();\n    return unified;\n}\n\nunified = processCurrentEvent(); \n\n//We shouldn't do anything if there is no data \n// or if Summer Mode is active\nif (unified != null && !unified.summer_mode) {\n    \n    // Also output it\n    msg.payload = unified;\n    return msg;\n}\n",
         "id": "21547463e3d44df3",
-        "initialize": "",
-        "libs": [
-        ],
+        "type": "function",
+        "z": "6e4b058d9d8e0a83",
         "name": "Get States and Build Unified Object",
-        "noerr": 0,
+        "func": "// Get HA state cache from global context\nlet states = [];\nlet unified = null;\n\n//If you need to add a new entity it needs to be added \n//inside both process... functions\n\n\n// Helper: safely get numeric state\nfunction num(entity_id) {\n    const s = states[entity_id];\n    if (!s) {\n        node.warn(`Missing entity: ${entity_id}`);\n        return null;\n    }\n    const n = parseFloat(s.state);\n    return isNaN(n) ? null : n;\n}\n\n// Helper: safely get boolean state (on/off)\nfunction bool(entity_id) {\n    const s = states[entity_id];\n    if (!s) {\n        node.warn(`Missing entity: ${entity_id}`);\n        return null;\n    }\n    const v = s.state;\n    return v === 'on' || v === true;\n}\n\n// ----- Build unified object -----\nfunction processCurrentStates() {\n    const ha = global.get('homeassistant');\n    if (!ha || !ha.homeAssistant || !ha.homeAssistant.states) {\n        node.warn(\"Home Assistant state cache not ready in global context\");\n        return null;\n    }\n\n    states = ha.homeAssistant.states;\n\n    unified = {\n        summer_mode: bool('input_boolean.summer_mode'),\n        we_are_away: bool('input_boolean.we_are_away'),\n        we_are_away_temp: num('input_number.away_temp'),\n        heat_needed: null,\n        changes_detected: false,\n\n\n        rooms: {\n            living: {\n                current_temp:  num('sensor.living_temp_temperature'),\n                window_opened: bool('binary_sensor.living_window_contact'),\n\n                morning_temp:  num('input_number.living_morning_temp'),\n                day_temp:      num('input_number.living_day_temp'),\n                evening_temp:  num('input_number.living_evening_temp'),\n                night_temp:    num('input_number.living_night_temp'),\n                delta_temp:    num('input_number.living_delta_temp'),\n\n                morning_start: num('input_number.living_morning_start'),\n                day_start:     num('input_number.living_day_start'),\n                evening_start: num('input_number.living_evening_start'),\n                night_start:   num('input_number.living_night_start'),\n                \n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            bedroom: {\n                current_temp:  num('sensor.bedroom_temp_temperature'),\n                window_opened: bool('binary_sensor.balcony_window_contact'),\n\n                morning_temp:  num('input_number.bedroom_morning_temp'),\n                day_temp:      num('input_number.bedroom_day_temp'),\n                evening_temp:  num('input_number.bedroom_evening_temp'),\n                night_temp:    num('input_number.bedroom_night_temp'),\n                delta_temp:    num('input_number.bedroom_delta_temp'),\n\n                morning_start: num('input_number.bedroom_morning_start'),\n                day_start:     num('input_number.bedroom_day_start'),\n                evening_start: num('input_number.bedroom_evening_start'),\n                night_start:   num('input_number.bedroom_night_start'),\n                \n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            bbls: {\n                current_temp:  num('sensor.bbls_temp_temperature'),\n                window_opened: bool('binary_sensor.bbls_window_contact'),\n\n                morning_temp:  num('input_number.bbls_morning_temp'),\n                day_temp:      num('input_number.bbls_day_temp'),\n                evening_temp:  num('input_number.bbls_evening_temp'),\n                night_temp:    num('input_number.bbls_night_temp'),\n                delta_temp:    num('input_number.bbls_delta_temp'),\n\n                morning_start: num('input_number.bbls_morning_start'),\n                day_start:     num('input_number.bbls_day_start'),\n                evening_start: num('input_number.bbls_evening_start'),\n                night_start:   num('input_number.bbls_night_start'),\n\n                targetTemp: null,\n                would_start_soon: false,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            balcony: {\n                current_temp:  num('sensor.balcony_temp_temperature'),\n                window_opened: bool('binary_sensor.balcony_window_contact'),\n                radiator_override: bool('input_boolean.radiator_manual_override'),\n\n                morning_temp:  num('input_number.balcony_morning_temp'),\n                day_temp:      num('input_number.balcony_day_temp'),\n                evening_temp:  num('input_number.balcony_evening_temp'),\n                night_temp:    num('input_number.balcony_night_temp'),\n                delta_temp:    num('input_number.balcony_delta_temp'),\n\n                targetTemp: null,\n                trv_temp: null,\n                heater_needed: false\n            },\n\n            kitchen: {\n                window_opened: bool('binary_sensor.kitchen_window_contact'),\n\n                morning_temp:  num('input_number.kitchen_morning_temp'),\n                day_temp:      num('input_number.kitchen_day_temp'),\n                evening_temp:  num('input_number.kitchen_evening_temp'),\n                night_temp:    num('input_number.kitchen_night_temp'),\n\n                targetTemp: null,\n                trv_temp: null,\n                heater_needed: false\n            }\n        }\n    };\n\n    // Store in flow context so other flows can reuse it\n    flow.set('unified_entities', unified); \n    return unified;\n}\n\n// ----- If event triggered by watched entity - build unified object -------\nfunction processCurrentEvent() {\n    const watchedEvents = new Set([\n        \"input_boolean.summer_mode\",\n        \"input_boolean.we_are_away\",\n        \"input_number.away_temp\",\n\n        \"sensor.living_temp_temperature\",\n        \"binary_sensor.living_window_contact\",\n        \"input_number.living_morning_temp\",\n        \"input_number.living_day_temp\",\n        \"input_number.living_evening_temp\",\n        \"input_number.living_night_temp\",\n        \"input_number.living_delta_temp\",\n        \"input_number.living_morning_start\",\n        \"input_number.living_day_start\",\n        \"input_number.living_evening_start\",\n        \"input_number.living_night_start\",\n\n\n        \"sensor.bedroom_temp_temperature\",\n        \"binary_sensor.balcony_window_contact\",\n        \"input_number.bedroom_morning_temp\",\n        \"input_number.bedroom_day_temp\",\n        \"input_number.bedroom_evening_temp\",\n        \"input_number.bedroom_night_temp\",\n        \"input_number.bedroom_delta_temp\",\n        \"input_number.bedroom_morning_start\",\n        \"input_number.bedroom_day_start\",\n        \"input_number.bedroom_evening_start\",\n        \"input_number.bedroom_night_start\",\n\n\n        \"sensor.bbls_temp_temperature\",\n        \"binary_sensor.bbls_window_contact\",\n        \"input_number.bbls_morning_temp\",\n        \"input_number.bbls_day_temp\",\n        \"input_number.bbls_evening_temp\",\n        \"input_number.bbls_night_temp\",\n        \"input_number.bbls_delta_temp\",\n        \"input_number.bbls_morning_start\",\n        \"input_number.bbls_day_start\",\n        \"input_number.bbls_evening_start\",\n        \"input_number.bbls_night_start\",\n\n\n        \"sensor.balcony_temp_temperature\",\n        \"binary_sensor.balcony_window_contact\",\n        \"input_number.balcony_morning_temp\",\n        \"input_number.balcony_day_temp\",\n        \"input_number.balcony_evening_temp\",\n        \"input_number.balcony_night_temp\",\n        \"input_number.balcony_delta_temp\",\n        \"input_boolean.radiator_manual_override\",\n\n\n        \"input_number.kitchen_morning_temp\",\n        \"input_number.kitchen_day_temp\",\n        \"input_number.kitchen_evening_temp\",\n        \"input_number.kitchen_night_temp\",\n        \"binary_sensor.kitchen_window_contact\"\n    ]);\n\n    // events: all puts the event in msg.payload\n    const ev = msg.payload;  \n    if (!ev || ev.event_type !== \"state_changed\") {\n        return null;\n    }\n\n    const data = ev.event || {};\n    const entity_id = data.entity_id;\n\n    if (!entity_id || !watchedEvents.has(entity_id)) {\n        return null; // not an entity we care about\n    }\n    \n    unified = processCurrentStates();\n    return unified;\n}\n\nunified = processCurrentEvent(); \n\n//We shouldn't do anything if there is no data \n// or if Summer Mode is active\nif (unified != null && !unified.summer_mode) {\n    \n    // Also output it\n    msg.payload = unified;\n    return msg;\n}\n",
         "outputs": 1,
         "timeout": 0,
-        "type": "function",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 480,
         "wires": [
             [
                 "55b44918d02a3df9"
             ]
-        ],
-        "x": 440,
-        "y": 480,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "eventData": "",
-        "eventType": "state_changed",
-        "exposeAsEntityConfig": "",
         "id": "bef5a717e789f4a6",
+        "type": "server-events",
+        "z": "6e4b058d9d8e0a83",
         "name": "Listen to all events",
+        "server": "bb9894b2.8b5ad8",
+        "version": 3,
+        "exposeAsEntityConfig": "",
+        "eventType": "state_changed",
+        "eventData": "",
+        "waitForRunning": true,
         "outputProperties": [
             {
                 "property": "payload",
@@ -87,31 +88,28 @@
                 "valueType": "jsonata"
             }
         ],
-        "server": "bb9894b2.8b5ad8",
-        "type": "server-events",
-        "version": 3,
-        "waitForRunning": true,
+        "x": 130,
+        "y": 480,
         "wires": [
             [
                 "21547463e3d44df3"
             ]
-        ],
-        "x": 130,
-        "y": 480,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "finalize": "",
-        "func": "const isAway = msg.payload.we_are_away;\nconst targetTemp = parseFloat(msg.payload.we_are_away_temp); //Using away temp as initial temp for the system\n\n\n// Helper to safely read nested paths like \"rooms.living.trv_temp\"\nfunction get(obj, path) {\n    return path.split('.').reduce((o, k) => (o && k in o ? o[k] : undefined), obj);\n}\n\n\nfunction Apply_Balcony_Logic() {\n    //If we override the logic we should return the msg obj untouched\n    const balconyOverride = msg.payload.rooms.balcony.radiator_override;\n    if (balconyOverride) return msg;\n\n    const windowOpened = msg.payload.rooms.balcony.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.balcony.heater_needed = false;\n        return msg;\n    }\n\n    const weekday = [\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"];\n    const d = new Date();\n    let day = weekday[d.getDay()];\n    switch (day) {\n        case \"Sunday\":\n        case \"Saturday\":\n            return;\n            \n    }\n\n    let targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n\n    if (isAway) {\n        targetT = targetTemp;\n    }\n    else {\n        targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n        \n        let hour = new Date().getHours();\n        let period = 'night';\n\n        if (hour >= 7 && hour < 9) {\n            period = 'morning';\n        } else if (hour >= 9 && hour < 17) {\n            period = 'day';\n        } else if (hour >= 17 && hour < 21) {\n            period = 'evening';\n        } else {\n            period = 'night';\n        }\n\n\n        switch(period){\n            case \"morning\":\n                targetT = parseFloat(msg.payload.rooms.balcony.morning_temp);\n                break;\n            case \"day\":\n                targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n                break;\n            case \"evening\":\n                targetT = parseFloat(msg.payload.rooms.balcony.evening_temp);\n                break;\n            case \"night\":\n                targetT = parseFloat(msg.payload.rooms.balcony.night_temp);\n                break;\n            default:\n                targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n                break;\n        }\n    }\n\n    msg.payload.rooms.balcony.targetTemp = targetT;\n    \n    const deltaTemp = parseFloat(msg.payload.rooms.balcony.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.balcony.current_temp);\n    const lowerLimit = targetT - deltaTemp;\n    const upperLimit = targetT + deltaTemp;\n\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.balcony.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.balcony.heater_needed = false;\n    }\n    else {\n        // In between — maintain current state or continue heating if already on\n        msg.payload.rooms.balcony.heater_needed = true;\n    }\n}\n\nfunction Apply_Kitchen_Logic() {\n    //Kitchen is not taken into account when starting the heater\n    let hour = new Date().getHours();\n    let period = 'night';\n\n    if (hour >= 6 && hour < 9) {\n        period = 'morning';\n    } else if (hour >= 9 && hour < 17) {\n        period = 'day';\n    } else if (hour >= 17 && hour < 21) {\n        period = 'evening';\n    } else {\n        period = 'night';\n    }\n\n    switch(period){\n        case \"morning\":\n            msg.payload.rooms.kitchen.trv_temp = 35;\n            msg.payload.rooms.kitchen.heater_needed = true;\n            break;\n        case \"day\":\n            msg.payload.rooms.kitchen.trv_temp = 35;\n            msg.payload.rooms.kitchen.heater_needed = true;\n            break;\n        case \"evening\":\n            msg.payload.rooms.kitchen.trv_temp = 5;\n            msg.payload.rooms.kitchen.heater_needed = false;\n            break;\n        case \"night\":\n            msg.payload.rooms.kitchen.trv_temp = 5;\n            msg.payload.rooms.kitchen.heater_needed = false;\n            break;\n        default:\n            msg.payload.rooms.kitchen.trv_temp = 35;\n            msg.payload.rooms.kitchen.heater_needed = true;\n            break;\n    }\n}\n\nfunction Apply_Bbls_Logic() {\n    const windowOpened = msg.payload.rooms.bbls.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.bbls.heater_needed = false;\n        msg.payload.rooms.bbls.trv_temp = 5;\n        return msg;\n    }\n\n    msg.payload.rooms.bbls.trv_temp = 5;\n    let targetT = msg.payload.rooms.bbls.day_temp;\n\n    if (isAway) {\n        targetT = targetTemp;\n    }\n    else {\n        targetT = parseFloat(msg.payload.rooms.bbls.day_temp);\n        \n        let hour = new Date().getHours();\n        let period = 'night';\n        \n        if (hour >= msg.payload.rooms.bbls.morning_start && hour < msg.payload.rooms.bbls.day_start) {\n            period = 'morning';\n        } else if (hour >= msg.payload.rooms.bbls.day_start && hour < msg.payload.rooms.bbls.evening_start) {\n            period = 'day';\n        } else if (hour >= msg.payload.rooms.bbls.evening_start && hour < msg.payload.rooms.bbls.night_start) {\n            period = 'evening';\n        } else {\n            period = 'night';\n        }\n\n        switch(period){\n            case \"morning\":\n                targetT = parseFloat(msg.payload.rooms.bbls.morning_temp);\n                break;\n            case \"day\":\n                targetT = parseFloat(msg.payload.rooms.bbls.day_temp);\n                break;\n            case \"evening\":\n                targetT = parseFloat(msg.payload.rooms.bbls.evening_temp);\n                break;\n            case \"night\":\n                targetT = parseFloat(msg.payload.rooms.bbls.night_temp);\n                break;\n            default:\n                targetT = parseFloat(msg.payload.rooms.bbls.day_temp);\n                break;\n        }\n    }\n\n    const deltaTemp = parseFloat(msg.payload.rooms.bbls.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.bbls.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    msg.payload.rooms.bbls.targetTemp = targetT;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bbls.trv_temp = 35;\n        msg.payload.rooms.bbls.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.bbls.trv_temp = 5;\n        msg.payload.rooms.bbls.heater_needed = false;\n    }\n    // else {\n    //     // In between — maintain current state or continue heating if already on\n    //     msg.payload.rooms.bbls.trv_temp = 35;\n    //     msg.payload.rooms.bbls.heater_needed = true;\n    // }\n\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bbls.trv_temp = 35;\n        msg.payload.rooms.bbls.would_start_soon = true;\n    }\n}\n\nfunction Apply_Bedroom_Logic() {\n    const windowOpened = msg.payload.rooms.bedroom.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.bedroom.heater_needed = false;\n        msg.payload.rooms.bedroom.trv_temp = 5;\n        return msg;\n    }\n\n    msg.payload.rooms.bedroom.trv_temp = 5;\n    let targetT = msg.payload.rooms.bedroom.day_temp;\n\n    if (isAway) {\n        targetT = targetTemp;\n    }\n    else {\n        targetT = parseFloat(msg.payload.rooms.bedroom.day_temp);\n        \n        let hour = new Date().getHours();\n        let period = 'night';\n        \n        if (hour >= msg.payload.rooms.bedroom.morning_start && hour < msg.payload.rooms.bedroom.day_start) {\n            period = 'morning';\n        } else if (hour >= msg.payload.rooms.bedroom.day_start && hour < msg.payload.rooms.bedroom.evening_start) {\n            period = 'day';\n        } else if (hour >= msg.payload.rooms.bedroom.evening_start && hour < msg.payload.rooms.bedroom.night_start) {\n            period = 'evening';\n        } else {\n            period = 'night';\n        }\n\n        switch(period){\n            case \"morning\":\n                targetT = parseFloat(msg.payload.rooms.bedroom.morning_temp);\n                break;\n            case \"day\":\n                targetT = parseFloat(msg.payload.rooms.bedroom.day_temp);\n                break;\n            case \"evening\":\n                targetT = parseFloat(msg.payload.rooms.bedroom.evening_temp);\n                break;\n            case \"night\":\n                targetT = parseFloat(msg.payload.rooms.bedroom.night_temp);\n                break;\n            default:\n                targetT = parseFloat(msg.payload.rooms.bedroom.day_temp);\n                break;\n        }\n    }\n\n    const deltaTemp = parseFloat(msg.payload.rooms.bedroom.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.bedroom.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    msg.payload.rooms.bedroom.targetTemp = targetT;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bedroom.trv_temp = 35;\n        msg.payload.rooms.bedroom.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.bedroom.trv_temp = 5;\n        msg.payload.rooms.bedroom.heater_needed = false;\n    }\n    // else {\n    //     // In between — maintain current state or continue heating if already on\n    //     msg.payload.rooms.bedroom.trv_temp = 35;\n    //     msg.payload.rooms.bedroom.heater_needed = true;\n    // }\n\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bedroom.trv_temp = 35;\n        msg.payload.rooms.bedroom.would_start_soon = true;\n    }\n}\n\nfunction Apply_Living_Logic() {\n    const windowOpened = msg.payload.rooms.living.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.living.heater_needed = false;\n        msg.payload.rooms.living.trv_temp = 5;\n        return msg;\n    }\n    msg.payload.rooms.living.trv_temp = 5;\n    let targetT = msg.payload.rooms.living.day_temp;\n\n    if (isAway) {\n        targetT = targetTemp;\n    }\n    else {\n        targetT = parseFloat(msg.payload.rooms.living.day_temp);\n        \n        let hour = new Date().getHours();\n        let period = 'night';\n        \n        if (hour >= msg.payload.rooms.living.morning_start && hour < msg.payload.rooms.living.day_start) {\n            period = 'morning';\n        } else if (hour >= msg.payload.rooms.living.day_start && hour < msg.payload.rooms.living.evening_start) {\n            period = 'day';\n        } else if (hour >= msg.payload.rooms.living.evening_start && hour < msg.payload.rooms.living.night_start) {\n            period = 'evening';\n        } else {\n            period = 'night';\n        }\n\n        switch(period){\n            case \"morning\":\n                targetT = parseFloat(msg.payload.rooms.living.morning_temp);\n                break;\n            case \"day\":\n                targetT = parseFloat(msg.payload.rooms.living.day_temp);\n                break;\n            case \"evening\":\n                targetT = parseFloat(msg.payload.rooms.living.evening_temp);\n                break;\n            case \"night\":\n                targetT = parseFloat(msg.payload.rooms.living.night_temp);\n                break;\n            default:\n                targetT = parseFloat(msg.payload.rooms.living.day_temp);\n                break;\n        }\n    }\n\n    const deltaTemp = parseFloat(msg.payload.rooms.living.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.living.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    msg.payload.rooms.living.targetTemp = targetT;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.living.trv_temp = 35;\n        msg.payload.rooms.living.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.living.trv_temp = 5;\n        msg.payload.rooms.living.heater_needed = false;\n    }\n    // else {\n    //     // In between — maintain current state or continue heating if already on\n    //     msg.payload.rooms.living.trv_temp = 35;\n    //     msg.payload.rooms.living.heater_needed = true;\n    // }\n\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.living.trv_temp = 35;\n        msg.payload.rooms.living.would_start_soon = true;\n    }\n}\n\nfunction Check_If_Heat_Needed() {\n    let heat_needed = false;\n\n    //If either condition is true we need to start the heating\n    if(msg.payload.rooms.living.heater_needed === true\n    || msg.payload.rooms.bedroom.heater_needed === true\n    || msg.payload.rooms.bbls.heater_needed === true\n    ) {\n        heat_needed = true;  \n    }\n\n    //If a room would request hest soon we should start it \n    // if other room already made the heating request\n\n\n    //Heat required - process rooms that are close to needing heat\n    if (heat_needed) {\n        //Living did not request heat but would request soon\n        if (msg.payload.rooms.living.heater_needed === false) {\n            if (msg.payload.rooms.living.would_start_soon)\n                msg.payload.rooms.living.heater_needed = true;\n        }\n\n        //Bedroom did not request heat but would request soon\n        if (msg.payload.rooms.bedroom.heater_needed === false) {\n            if (msg.payload.rooms.bedroom.would_start_soon)\n                msg.payload.rooms.bedroom.heater_needed = true;\n        }\n\n        //Bbls did not request heat but would request soon\n        if (msg.payload.rooms.bbls.heater_needed === false) {\n            if (msg.payload.rooms.bbls.would_start_soon)\n                msg.payload.rooms.bbls.heater_needed = true;\n        }\n    }\n\n    msg.payload.heat_needed = heat_needed;\n}\n\nfunction Check_If_Actions_Needed() {\n    // The unified object from your question\n    const current = msg.payload;\n\n    // Deep-clone so later nodes don't mutate what we store in context\n    const curr = JSON.parse(JSON.stringify(current));\n\n    // First message ever: just store and don't trigger\n    const prev = flow.get('unified_prev') || null;\n    if (!prev)\n    {\n        flow.set('unified_prev', curr);\n        return;\n    }\n\n    // List of fields you actually care about for triggering\n    // Add/remove as needed\n    const watched = [\n        'summer_mode',\n        'we_are_away',\n        'we_are_away_temp',\n        'heat_needed',\n\n        'rooms.living.heater_needed',\n        'rooms.bedroom.heater_needed',\n        'rooms.bbls.heater_needed',\n        'rooms.balcony.heater_needed',\n        'rooms.kitchen.heater_needed'\n    ];\n\n    let changed = {};\n\n    for (const path of watched) {\n        const oldVal = get(prev, path);\n        const newVal = get(curr, path);\n\n        // Normal strict comparison\n        if (oldVal === newVal) continue;\n    \n        // Something actually changed here\n        changed[path] = { old: oldVal, new: newVal };\n    }\n\n    // Update stored snapshot\n    flow.set('unified_prev', curr);\n\n    // If nothing changed in watched fields, stop here\n    if (Object.keys(changed).length === 0) {\n        msg.payload.changes_detected = false;\n    } else {\n        msg.payload.changes_detected = true;\n    }\n}\n\n\nApply_Balcony_Logic();\nApply_Kitchen_Logic();\n\n//These 3 rooms are similar, but there might be different\nApply_Bbls_Logic();\nApply_Bedroom_Logic();\nApply_Living_Logic();\n\nCheck_If_Heat_Needed();\n\nCheck_If_Actions_Needed();\n\n//If we have changes we need to return the msg object and advance the flow\nif (msg.payload.changes_detected)\n    return msg;\n\n//stop the current flow\nreturn null;",
         "id": "55b44918d02a3df9",
-        "initialize": "",
-        "libs": [
-        ],
+        "type": "function",
+        "z": "6e4b058d9d8e0a83",
         "name": "Rooms Logic",
-        "noerr": 0,
+        "func": "const isAway = msg.payload.we_are_away;\nconst targetTemp = parseFloat(msg.payload.we_are_away_temp); //Using away temp as initial temp for the system\n\n// List of fields you actually care about for triggering\n// Add/remove as needed\nconst watchedEntities = [\n    'summer_mode',\n    'we_are_away',\n    'we_are_away_temp',\n    'heat_needed',\n\n    'rooms.living.heater_needed',\n    'rooms.bedroom.heater_needed',\n    'rooms.bbls.heater_needed',\n    'rooms.balcony.heater_needed',\n    'rooms.kitchen.heater_needed'\n];\n\n// Helper to safely read nested paths like \"rooms.living.trv_temp\"\nfunction get(obj, path) {\n    return path.split('.').reduce((o, k) => (o && k in o ? o[k] : undefined), obj);\n}\n\nfunction getTargetTemp(room) {\n    //Default value\n    let targetT = parseFloat(room.day_temp); \n\n    //If we are away set the away temp and ignore any day period logic\n    if (isAway) {\n        targetT = targetTemp;\n        return targetT;\n    }\n        \n    let hour = new Date().getHours();\n    let period = 'night';\n    \n    if (hour >= room.morning_start && hour < room.day_start) {\n        period = 'morning';\n    } else if (hour >= room.day_start && hour < room.evening_start) {\n        period = 'day';\n    } else if (hour >= room.evening_start && hour < room.night_start) {\n        period = 'evening';\n    } else {\n        period = 'night';\n    }\n\n    switch(period){\n        case \"morning\":\n            targetT = parseFloat(room.morning_temp);\n            break;\n        case \"day\":\n            targetT = parseFloat(room.day_temp);\n            break;\n        case \"evening\":\n            targetT = parseFloat(room.evening_temp);\n            break;\n        case \"night\":\n            targetT = parseFloat(room.night_temp);\n            break;\n        default:\n            targetT = parseFloat(room.day_temp);\n            break;\n    }\n    return targetT;\n}\n\n//This is standalone logic as it has a different heat source\nfunction Apply_Balcony_Logic() {\n    //If we override the logic we should return the msg obj untouched\n    const balconyOverride = msg.payload.rooms.balcony.radiator_override;\n    if (balconyOverride) return msg;\n\n    const windowOpened = msg.payload.rooms.balcony.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.balcony.heater_needed = false;\n        return msg;\n    }\n\n    const weekday = [\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"];\n    const d = new Date();\n    let day = weekday[d.getDay()];\n    switch (day) {\n        case \"Sunday\":\n        case \"Saturday\":\n            return;\n            \n    }\n\n    let targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n\n    if (isAway) {\n        targetT = targetTemp;\n    }\n    else {\n        targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n        \n        let hour = new Date().getHours();\n        let period = 'night';\n\n        if (hour >= 7 && hour < 9) {\n            period = 'morning';\n        } else if (hour >= 9 && hour < 17) {\n            period = 'day';\n        } else if (hour >= 17 && hour < 21) {\n            period = 'evening';\n        } else {\n            period = 'night';\n        }\n\n\n        switch(period){\n            case \"morning\":\n                targetT = parseFloat(msg.payload.rooms.balcony.morning_temp);\n                break;\n            case \"day\":\n                targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n                break;\n            case \"evening\":\n                targetT = parseFloat(msg.payload.rooms.balcony.evening_temp);\n                break;\n            case \"night\":\n                targetT = parseFloat(msg.payload.rooms.balcony.night_temp);\n                break;\n            default:\n                targetT = parseFloat(msg.payload.rooms.balcony.day_temp);\n                break;\n        }\n    }\n\n    msg.payload.rooms.balcony.targetTemp = targetT;\n    \n    const deltaTemp = parseFloat(msg.payload.rooms.balcony.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.balcony.current_temp);\n    const lowerLimit = targetT - deltaTemp;\n    const upperLimit = targetT + deltaTemp;\n\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.balcony.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.balcony.heater_needed = false;\n    }\n    else {\n        // In between — maintain current state or continue heating if already on\n        msg.payload.rooms.balcony.heater_needed = true;\n    }\n}\n\n//This is standalone logic because it doesn't control the heater. \n//We start the radiator during the day, at night it's not needed\nfunction Apply_Kitchen_Logic() {\n    //Kitchen is not taken into account when starting the heater\n    let hour = new Date().getHours();\n    let period = 'night';\n\n    if (hour >= 6 && hour < 9) {\n        period = 'morning';\n    } else if (hour >= 9 && hour < 17) {\n        period = 'day';\n    } else if (hour >= 17 && hour < 21) {\n        period = 'evening';\n    } else {\n        period = 'night';\n    }\n\n    switch(period){\n        case \"morning\":\n        case \"day\":\n            msg.payload.rooms.kitchen.trv_temp = 35;\n            msg.payload.rooms.kitchen.heater_needed = true;\n            break;\n        case \"evening\":\n        case \"night\":\n            msg.payload.rooms.kitchen.trv_temp = 5;\n            msg.payload.rooms.kitchen.heater_needed = false;\n            break;\n        default:\n            msg.payload.rooms.kitchen.trv_temp = 35;\n            msg.payload.rooms.kitchen.heater_needed = true;\n            break;\n    }\n}\n\n\nfunction Apply_Bbls_Logic() {\n    const windowOpened = msg.payload.rooms.bbls.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.bbls.heater_needed = false;\n        msg.payload.rooms.bbls.trv_temp = 5;\n        return msg;\n    }\n\n    msg.payload.rooms.bbls.trv_temp = 5;\n    const targetT = getTargetTemp(msg.payload.rooms.bbls);\n    msg.payload.rooms.bbls.targetTemp = targetT;\n    \n\n    const deltaTemp = parseFloat(msg.payload.rooms.bbls.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.bbls.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bbls.trv_temp = 35;\n        msg.payload.rooms.bbls.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.bbls.trv_temp = 5;\n        msg.payload.rooms.bbls.heater_needed = false;\n    }\n\n    //It will start soon so we set the TRV to Open and if another room \n    //requires heat this radiator will heat up as well\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bbls.trv_temp = 35;\n        msg.payload.rooms.bbls.would_start_soon = true;\n    }\n}\n\nfunction Apply_Bedroom_Logic() {\n    const windowOpened = msg.payload.rooms.bedroom.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.bedroom.heater_needed = false;\n        msg.payload.rooms.bedroom.trv_temp = 5;\n        return msg;\n    }\n\n    msg.payload.rooms.bedroom.trv_temp = 5;\n    const targetT = getTargetTemp(msg.payload.rooms.bedroom);\n    msg.payload.rooms.bedroom.targetTemp = targetT;\n    \n    const deltaTemp = parseFloat(msg.payload.rooms.bedroom.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.bedroom.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bedroom.trv_temp = 35;\n        msg.payload.rooms.bedroom.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.bedroom.trv_temp = 5;\n        msg.payload.rooms.bedroom.heater_needed = false;\n    }\n\n    //It will start soon so we set the TRV to Open and if another room \n    //requires heat this radiator will heat up as well\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.bedroom.trv_temp = 35;\n        msg.payload.rooms.bedroom.would_start_soon = true;\n    }\n}\n\nfunction Apply_Living_Logic() {\n    const windowOpened = msg.payload.rooms.living.window_opened;\n    if (windowOpened) {\n        msg.payload.rooms.living.heater_needed = false;\n        msg.payload.rooms.living.trv_temp = 5;\n        return msg;\n    }\n    msg.payload.rooms.living.trv_temp = 5;\n    const targetT = getTargetTemp(msg.payload.rooms.living);\n    msg.payload.rooms.living.targetTemp = targetT;\n\n\n    const deltaTemp = parseFloat(msg.payload.rooms.living.delta_temp);\n    const currentTemp = parseFloat(msg.payload.rooms.living.current_temp);\n\n    const upperLimit = targetT + deltaTemp;\n    const lowerLimit = targetT - deltaTemp;\n    const lowerLimitSoon = targetT - deltaTemp/2;\n\n    //Check temp and set TRV temp and set the heater_on variable\n    if (currentTemp <= lowerLimit) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.living.trv_temp = 35;\n        msg.payload.rooms.living.heater_needed = true;\n    }\n    else if (currentTemp >= upperLimit) {\n        // Above upper limit — heating OFF\n        msg.payload.rooms.living.trv_temp = 5;\n        msg.payload.rooms.living.heater_needed = false;\n    }\n\n    //It will start soon so we set the TRV to Open and if another room \n    //requires heat this radiator will heat up as well\n    if (currentTemp <= lowerLimitSoon) {\n        // Below lower limit — heating ON\n        msg.payload.rooms.living.trv_temp = 35;\n        msg.payload.rooms.living.would_start_soon = true;\n    }\n}\n\n\nfunction Check_If_Heat_Needed() {\n    let heat_needed = false;\n\n    //If either condition is true we need to start the heating\n    if(msg.payload.rooms.living.heater_needed === true\n    || msg.payload.rooms.bedroom.heater_needed === true\n    || msg.payload.rooms.bbls.heater_needed === true\n    ) {\n        heat_needed = true;  \n    }\n\n    //Heat required - process rooms that are close to needing heat\n    // Technically this is no longer needed as the TRV temp will get set\n    // keeping it here just in case I decide to make changes in the future\n    if (heat_needed) {\n        //Living did not request heat but would request soon\n        if (msg.payload.rooms.living.heater_needed === false) {\n            if (msg.payload.rooms.living.would_start_soon)\n                msg.payload.rooms.living.heater_needed = true;\n        }\n\n        //Bedroom did not request heat but would request soon\n        if (msg.payload.rooms.bedroom.heater_needed === false) {\n            if (msg.payload.rooms.bedroom.would_start_soon)\n                msg.payload.rooms.bedroom.heater_needed = true;\n        }\n\n        //Bbls did not request heat but would request soon\n        if (msg.payload.rooms.bbls.heater_needed === false) {\n            if (msg.payload.rooms.bbls.would_start_soon)\n                msg.payload.rooms.bbls.heater_needed = true;\n        }\n    }\n\n    msg.payload.heat_needed = heat_needed;\n}\n\nfunction Check_If_Actions_Needed() {\n    // The unified object from your question\n    const current = msg.payload;\n\n    // Deep-clone so later nodes don't mutate what we store in context\n    const curr = JSON.parse(JSON.stringify(current));\n\n    // First message ever: just store and don't trigger\n    const prev = flow.get('unified_prev') || null;\n    if (!prev)\n    {\n        flow.set('unified_prev', curr);\n        return;\n    }\n\n    let changed = {};\n\n    //watchedEntities - Is declared at the top\n    for (const path of watchedEntities) {\n        const oldVal = get(prev, path);\n        const newVal = get(curr, path);\n\n        // Normal strict comparison\n        if (oldVal === newVal) continue;\n    \n        // Something actually changed here\n        changed[path] = { old: oldVal, new: newVal };\n    }\n\n    // Update stored snapshot\n    flow.set('unified_prev', curr);\n\n    // If nothing changed in watched fields, stop here\n    if (Object.keys(changed).length === 0) {\n        msg.payload.changes_detected = false;\n    } else {\n        msg.payload.changes_detected = true;\n    }\n}\n\n\nApply_Balcony_Logic();\nApply_Kitchen_Logic();\n\n//These 3 rooms are similar, but there might be different\nApply_Bbls_Logic();\nApply_Bedroom_Logic();\nApply_Living_Logic();\n\nCheck_If_Heat_Needed();\n\nCheck_If_Actions_Needed();\n\n//If we have changes we need to return the msg object and advance the flow\nif (msg.payload.changes_detected)\n    return msg;\n\n//stop the current flow\nreturn null;",
         "outputs": 1,
         "timeout": 0,
-        "type": "function",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 480,
         "wires": [
             [
                 "3515425a56bb2e1f",
@@ -125,56 +123,46 @@
                 "6eb622bb76a3546a",
                 "d8f1651173e7a55b"
             ]
-        ],
-        "x": 710,
-        "y": 480,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "climate.set_temperature",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{ \"temperature\": msg.payload.rooms.kitchen.trv_temp }",
-        "dataType": "jsonata",
+        "id": "3515425a56bb2e1f",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Set Kitchen TRV Temp",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
+        "action": "climate.set_temperature",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "climate.kitchen_trv"
         ],
-        "floorId": [
-        ],
-        "id": "3515425a56bb2e1f",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{ \"temperature\": msg.payload.rooms.kitchen.trv_temp }",
+        "dataType": "jsonata",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Set Kitchen TRV Temp",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "climate",
         "service": "set_temperature",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1000,
         "y": 20,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "checkall": "false",
         "id": "840fcbdda2c74808",
+        "type": "switch",
+        "z": "6e4b058d9d8e0a83",
         "name": "Heat Req By Balcony",
-        "outputs": 2,
         "property": "payload.rooms.balcony.heater_needed",
         "propertyType": "msg",
-        "repair": false,
         "rules": [
             {
                 "t": "true"
@@ -183,7 +171,11 @@
                 "t": "false"
             }
         ],
-        "type": "switch",
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 1000,
+        "y": 180,
         "wires": [
             [
                 "53b8b6f7bca3d2a7",
@@ -193,33 +185,28 @@
                 "3a3a2a117bb6bc7e",
                 "068a589d5bedeba0"
             ]
-        ],
-        "x": 1000,
-        "y": 180,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "input_boolean.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "53b8b6f7bca3d2a7",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Enable Heat Req By Balcony",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.balcony_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "53b8b6f7bca3d2a7",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Enable Heat Req By Balcony",
         "outputProperties": [
             {
                 "property": "payload",
@@ -235,40 +222,35 @@
             }
         ],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1320,
         "y": 140,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "input_boolean.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "3a3a2a117bb6bc7e",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Disable Heat Req By Balcony",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.balcony_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "3a3a2a117bb6bc7e",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Disable Heat Req By Balcony",
         "outputProperties": [
             {
                 "property": "payload",
@@ -284,285 +266,239 @@
             }
         ],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1330,
         "y": 200,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "switch.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "4f43fbea2f916cf8",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Radiator Turn On ",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "switch",
+        "action": "switch.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "switch.balcony_radiator"
         ],
-        "floorId": [
-        ],
-        "id": "4f43fbea2f916cf8",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Radiator Turn On ",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "switch",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1290,
         "y": 80,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "switch.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "068a589d5bedeba0",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Radiator Turn Off",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "switch",
+        "action": "switch.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "switch.balcony_radiator"
         ],
-        "floorId": [
-        ],
-        "id": "068a589d5bedeba0",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Radiator Turn Off",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "switch",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1290,
         "y": 260,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "climate.set_temperature",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{ \"temperature\": msg.payload.rooms.living.trv_temp }",
-        "dataType": "jsonata",
+        "id": "255ebb28ad0a8cbb",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Set Living TRV Temp",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
+        "action": "climate.set_temperature",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "climate.living_trv"
         ],
-        "floorId": [
-        ],
-        "id": "255ebb28ad0a8cbb",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{ \"temperature\": msg.payload.rooms.living.trv_temp }",
+        "dataType": "jsonata",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Set Living TRV Temp",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "climate",
         "service": "set_temperature",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1000,
         "y": 440,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "climate.set_temperature",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{ \"temperature\": msg.payload.rooms.bedroom.trv_temp }",
-        "dataType": "jsonata",
+        "id": "92a2f9ee979f8371",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Set Bedroom TRV Temp",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
+        "action": "climate.set_temperature",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "climate.bedroom_trv"
         ],
-        "floorId": [
-        ],
-        "id": "92a2f9ee979f8371",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{ \"temperature\": msg.payload.rooms.bedroom.trv_temp }",
+        "dataType": "jsonata",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Set Bedroom TRV Temp",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "climate",
         "service": "set_temperature",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1010,
         "y": 620,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "climate.set_temperature",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{ \"temperature\": msg.payload.rooms.bbls.trv_temp }",
-        "dataType": "jsonata",
+        "id": "b611bd668b366811",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Set Bbls TRV Temp",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
+        "action": "climate.set_temperature",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "climate.bbls_trv"
         ],
-        "floorId": [
-        ],
-        "id": "b611bd668b366811",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{ \"temperature\": msg.payload.rooms.bbls.trv_temp }",
+        "dataType": "jsonata",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Set Bbls TRV Temp",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "climate",
         "service": "set_temperature",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 990,
         "y": 820,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "switch.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": true,
-        "data": "{}",
-        "dataType": "json",
+        "id": "608a3bdce2f1443d",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Centrala Turn On ",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "switch",
+        "action": "switch.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "switch.kitchen_centrala"
         ],
-        "floorId": [
-        ],
-        "id": "608a3bdce2f1443d",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Centrala Turn On ",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": true,
+        "domain": "switch",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1290,
         "y": 920,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "switch.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": true,
-        "data": "{}",
-        "dataType": "json",
+        "id": "91eae303da42b93b",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Centrala Turn Off",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "switch",
+        "action": "switch.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "switch.kitchen_centrala"
         ],
-        "floorId": [
-        ],
-        "id": "91eae303da42b93b",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Centrala Turn Off",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": true,
+        "domain": "switch",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1290,
         "y": 1000,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "checkall": "true",
         "id": "73a4b241abf41aa6",
+        "type": "switch",
+        "z": "6e4b058d9d8e0a83",
         "name": "Centrala On/Off",
-        "outputs": 2,
         "property": "payload.heat_needed",
         "propertyType": "msg",
-        "repair": false,
         "rules": [
             {
                 "t": "true"
@@ -571,7 +507,11 @@
                 "t": "false"
             }
         ],
-        "type": "switch",
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 980,
+        "y": 960,
         "wires": [
             [
                 "608a3bdce2f1443d"
@@ -579,19 +519,15 @@
             [
                 "91eae303da42b93b"
             ]
-        ],
-        "x": 980,
-        "y": 960,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "checkall": "false",
         "id": "344efd0e6c1bb913",
+        "type": "switch",
+        "z": "6e4b058d9d8e0a83",
         "name": "Heat Req By Living",
-        "outputs": 2,
         "property": "payload.rooms.living.heater_needed",
         "propertyType": "msg",
-        "repair": false,
         "rules": [
             {
                 "t": "true"
@@ -600,7 +536,11 @@
                 "t": "false"
             }
         ],
-        "type": "switch",
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 990,
+        "y": 380,
         "wires": [
             [
                 "30cd65a3d52bc93f"
@@ -608,33 +548,28 @@
             [
                 "27d03ee096fa5e87"
             ]
-        ],
-        "x": 990,
-        "y": 380,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "input_boolean.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "30cd65a3d52bc93f",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Enable Heat Req By Living",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.living_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "30cd65a3d52bc93f",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Enable Heat Req By Living",
         "outputProperties": [
             {
                 "property": "temp",
@@ -656,65 +591,57 @@
             }
         ],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
+        "x": 1320,
+        "y": 340,
         "wires": [
             [
                 "3b90ce858cc14c4d"
             ]
-        ],
-        "x": 1320,
-        "y": 340,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "input_boolean.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "27d03ee096fa5e87",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Disable Heat Req By Living",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.living_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "27d03ee096fa5e87",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Disable Heat Req By Living",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
+        "x": 1320,
+        "y": 420,
         "wires": [
             [
                 "d2807b0706991fd3"
             ]
-        ],
-        "x": 1320,
-        "y": 420,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "checkall": "false",
         "id": "6eb622bb76a3546a",
+        "type": "switch",
+        "z": "6e4b058d9d8e0a83",
         "name": "Heat Req By Bedroom",
-        "outputs": 2,
         "property": "payload.rooms.bedroom.heater_needed",
         "propertyType": "msg",
-        "repair": false,
         "rules": [
             {
                 "t": "true"
@@ -723,7 +650,11 @@
                 "t": "false"
             }
         ],
-        "type": "switch",
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 1000,
+        "y": 560,
         "wires": [
             [
                 "7083cea855dfbf51"
@@ -731,33 +662,28 @@
             [
                 "e6ce8ef0345d4f21"
             ]
-        ],
-        "x": 1000,
-        "y": 560,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "input_boolean.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "7083cea855dfbf51",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Enable Heat Req By Bedroom",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.bedroom_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "7083cea855dfbf51",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Enable Heat Req By Bedroom",
         "outputProperties": [
             {
                 "property": "template",
@@ -779,63 +705,53 @@
             }
         ],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1330,
         "y": 520,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "input_boolean.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "e6ce8ef0345d4f21",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Disable Heat Req By Bedroom",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.bedroom_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "e6ce8ef0345d4f21",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Disable Heat Req By Bedroom",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1330,
         "y": 600,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "checkall": "false",
         "id": "d8f1651173e7a55b",
+        "type": "switch",
+        "z": "6e4b058d9d8e0a83",
         "name": "Heat Req By Bbls",
-        "outputs": 2,
         "property": "payload.rooms.bbls.heater_needed",
         "propertyType": "msg",
-        "repair": false,
         "rules": [
             {
                 "t": "true"
@@ -844,7 +760,11 @@
                 "t": "false"
             }
         ],
-        "type": "switch",
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 990,
+        "y": 760,
         "wires": [
             [
                 "50487b022973cb3f"
@@ -852,181 +772,152 @@
             [
                 "4a612f1706263fe1"
             ]
-        ],
-        "x": 990,
-        "y": 760,
-        "z": "6e4b058d9d8e0a83"
+        ]
     },
     {
-        "action": "input_boolean.turn_on",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "50487b022973cb3f",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Enable Heat Req By Bbls",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_on",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.bbls_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "50487b022973cb3f",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Enable Heat Req By Bbls",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1310,
         "y": 720,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "input_boolean.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": false,
-        "data": "{}",
-        "dataType": "json",
+        "id": "4a612f1706263fe1",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Disable Heat Req By Bbls",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "input_boolean",
+        "action": "input_boolean.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "input_boolean.bbls_heater_needed"
         ],
-        "floorId": [
-        ],
-        "id": "4a612f1706263fe1",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "{}",
+        "dataType": "json",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Disable Heat Req By Bbls",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": false,
+        "domain": "input_boolean",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1310,
         "y": 800,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
+        "id": "3b90ce858cc14c4d",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Start Living Ac",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
+        "debugenabled": false,
         "action": "climate.turn_on",
-        "areaId": [
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "climate.living_acunit_mqtt_hvac"
         ],
-        "blockInputOverrides": true,
+        "labelId": [],
         "data": "",
         "dataType": "json",
-        "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
-        "entityId": [
-            "climate.living_acunit_mqtt_hvac"
-        ],
-        "floorId": [
-        ],
-        "id": "3b90ce858cc14c4d",
-        "labelId": [
-        ],
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Start Living Ac",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": true,
+        "domain": "climate",
         "service": "turn_on",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1660,
         "y": 340,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
-        "action": "climate.turn_off",
-        "areaId": [
-        ],
-        "blockInputOverrides": true,
-        "data": "",
-        "dataType": "jsonata",
+        "id": "d2807b0706991fd3",
+        "type": "api-call-service",
+        "z": "6e4b058d9d8e0a83",
+        "name": "Stop Living Ac",
+        "server": "bb9894b2.8b5ad8",
+        "version": 7,
         "debugenabled": false,
-        "deviceId": [
-        ],
-        "domain": "climate",
+        "action": "climate.turn_off",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
         "entityId": [
             "climate.living_acunit_mqtt_hvac"
         ],
-        "floorId": [
-        ],
-        "id": "d2807b0706991fd3",
-        "labelId": [
-        ],
+        "labelId": [],
+        "data": "",
+        "dataType": "jsonata",
         "mergeContext": "",
         "mustacheAltTags": false,
-        "name": "Stop Living Ac",
-        "outputProperties": [
-        ],
+        "outputProperties": [],
         "queue": "none",
-        "server": "bb9894b2.8b5ad8",
+        "blockInputOverrides": true,
+        "domain": "climate",
         "service": "turn_off",
-        "type": "api-call-service",
-        "version": 7,
-        "wires": [
-            [
-            ]
-        ],
         "x": 1660,
         "y": 420,
-        "z": "6e4b058d9d8e0a83"
+        "wires": [
+            []
+        ]
     },
     {
+        "id": "bb9894b2.8b5ad8",
+        "type": "server",
+        "name": "Home Assistant",
         "addon": true,
-        "cacheJson": false,
+        "rejectUnauthorizedCerts": true,
+        "ha_boolean": [],
         "connectionDelay": false,
-        "enableGlobalContextStore": true,
-        "ha_boolean": [
-        ],
+        "cacheJson": false,
         "heartbeat": false,
         "heartbeatInterval": "",
-        "id": "bb9894b2.8b5ad8",
-        "name": "Home Assistant",
-        "rejectUnauthorizedCerts": true,
         "statusSeparator": "",
-        "type": "server"
+        "enableGlobalContextStore": true
     },
     {
-        "env": [
-        ],
-        "id": "998da34c77b75f1d",
+        "id": "8d92d87968cd3482",
+        "type": "global-config",
+        "env": [],
         "modules": {
             "node-red-contrib-home-assistant-websocket": "0.80.3"
-        },
-        "type": "global-config"
+        }
     }
 ]
