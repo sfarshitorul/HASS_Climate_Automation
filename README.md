@@ -56,4 +56,25 @@ There are 2 additional functions:
   1. Set the TRV to the desired position
   2. If heat required - start the heater; otherwise turn it off
   3. if there are rooms that have heating capable HVAC start that as well. Radiators are not very efficient and the HVAC helps a lot in shortening the time needed to run the heater.
-   
+
+## Installation Notes
+  0. PRE-Prequisites!!!!
+      - <b>This comes with absolutely no warranty and you are using this at your OWN RISK! This is meant only as a startup point for your automation, if you think this one is close enough to what you need.</b>
+      - <b>I cannot STRESS ENOUGH: DO NOT PLAY WITH 220V power if you don't know what you are doing!!!! <br/>Installing the dry-contact for controlling the heater might not work for you or you need to ask a professional about how would you do that.</b>
+      - <b>Please note that I have no other means of controlling the heater. If zigbee decides to fuck off into a better world I need to open the heater and remove this relay and manually start the heater.</b>
+  1. Prerequisites:
+     - Ability to manually change the config YAML. For ease of editing these files I recommend the <b><i>Studio Code Server</i></b> community add-on. It's life made simple!
+     - Install <b><i>NodeRED</i></b> if you haven't already.
+     - Make sure your devices are working (TRV, Temp Sensors, HVACs, Door/Window Sensors) and are controllable through HA. <br/>Bonus points for FULL LOCAL control. You don't want to have your balls freeze off in the middle of the fucking winter because your internet sucks or because you hit god knows what API limit. FUCK THAT! Go Local!
+     - Make sure you know your devices and have named them and their entities appropriately. (eg. your Living Room TRV is called something like <i>Living.TRV</i> and you temp sensor is called <i>Living.Temp</i>) <<br/>Keep this naming consistent accross all your devices. It will make your life easier in the long run.
+  2. Set up the variables for the automation.
+     - Using Studio Code Server or any other method of your choosing create a <b><i>Climate</i></b> folder inside your <b><i>Config</i></b> main folder.
+     - Create two yaml files: <i>input_number.yaml</i> and <i>input_boolean.yaml</i> and add your required variables
+     - Update the configuration.yaml to include these files.
+     - Reload the configuration or restart HA to make sure these new variables are now seen by the system.
+  3. Add the dashboard to make it easy to keep an eye on everything.
+     - You can use the <a href="dashboard.yaml">Dashboard.yaml</a> as a starting point, but please update it to use your own entity names.
+  4. Import the NodeRED flow
+     - I recommend using Notepad++/Visual Studio Code or some similar text editor that knows JSON and edit this before you actually import it into NodeRED. It might be easier to make the bulk of the changes in a text editor instead of NodeRED. The JSON flow you want to edit is <a href="NodeRED-climate-flow.json">NodeRED-climate-flow.json</a>
+     - However, the 2 functions nodes that exist in this flow will be better edited inside NodeRED. They should be quite self-explanatory for a beginner developer and not very hard to understand and modify for a non-developer
+     - Deploy the flow and use the debug view to check if the object that gets outputed is similar to the sample one in <a href="unified-states.json">unified-states.json</a> files
